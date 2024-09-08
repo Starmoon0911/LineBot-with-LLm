@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+      "baseUrl": ".",  // 基础路径，通常是项目根目录
+      "paths": {
+        "@Bot/*": ["./Bot/*"],
+        "@Agent/*": ["./agent/*"],
+        "@Handler/*": ["./Bot/handler/*"],
+        "@events/*": ["./Bot/events/*"]
+      }
+    },
+    "exclude": [
+      "node_modules",
+      "**/*.test.ts",
+      "**/*.test.js"
+    ]
+  }
+  
