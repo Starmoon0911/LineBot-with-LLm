@@ -30,6 +30,7 @@ class AI {
 
     async sendMessage(input) {
         const Systemformmated = await prompt.format({
+            prompt: input,
             status: this.status,
             res_msg: this.res_msg,
             system: {}
