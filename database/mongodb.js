@@ -8,7 +8,7 @@ const createConnection = async ({ url = 'mongodb://0.0.0.0:27017' }) => {
                 console.log("Success to Connect to MongoDB");
             })
             .catch((e) => {
-                console.log('Connected to MongoDB')
+                console.log('Failed to Connect to MongoDB')
                 console.log(e);
             });
         return DBclient;
