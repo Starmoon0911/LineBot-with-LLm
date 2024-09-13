@@ -2,6 +2,7 @@ require('dotenv').config();
 const line = require('@line/bot-sdk');
 const AI = require('../agent/AIEngine');
 const createConnection = require('../database/mongodb');
+const ChatHistory = require('../database/schemas/ChatHistory.model')
 class BotClient extends line.Client {
     constructor() {
         super({
