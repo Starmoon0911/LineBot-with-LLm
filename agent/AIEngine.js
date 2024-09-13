@@ -44,7 +44,7 @@ class AI {
         ])
     }
     async saveChat(userId, HumanMessage, AiResponse, function_call) {
-        console.log('成功保存臨時對話紀錄')
+        
         try {
             const newChat = new ChatHistory({
                 userId: userId,
@@ -59,7 +59,7 @@ class AI {
                 }]
             })
             await newChat.save();
-
+            console.log('成功保存臨時對話紀錄')
         } catch (error) {
             console.error('Error saving chat:', error);
         }
@@ -80,6 +80,7 @@ class AI {
             return { message: 'Failed to fetch ChatHistory' }
         }
     }
+
     async sendMessage(input, userId) {
         const chathistory = await this.getChatHistory(userId);
         console.log('正在取得回應')
