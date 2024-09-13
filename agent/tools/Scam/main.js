@@ -5,7 +5,7 @@ const ScamTool = new DynamicStructuredTool({
     description: 'Tool for detecting scams',
     schema: ScamSchame,
     func: async ({ isScam }) => {
-        if(isScam) console.log('Scam detected')
+        if(isScam) console.log('Scam detected') 
     }
 })
 module.exports = ScamTool;

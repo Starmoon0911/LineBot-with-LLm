@@ -4,7 +4,7 @@ const { ChatGoogleGenerativeAI } = require("@langchain/google-genai");
 const { HumanMessage, SystemMessage } = require('@langchain/core/messages');
 const prompt = require('./SystemPrompt/index');
 const ChatHistory = require('../database/schemas/ChatHistory.model')
-const ScamTool = require('./tools/_example/main')
+const ScamTool = require('./tools/Scam/main')
 class AI {
     constructor(options) {
         if (options?.gemini_api_key === undefined || options?.gemini_api_key === null) {
