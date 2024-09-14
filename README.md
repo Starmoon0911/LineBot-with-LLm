@@ -29,3 +29,23 @@ mv .env.example .env
 ```
 node ./Bot/index.js
 ```
+
+# Building Whisper API on Colab
+
+## open `APIonColab.ipynb` or [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1bBXOUBvQkJCRHu0vPIiPhABIgiuUhvzP?usp=sharing)
+
+首先將ngrok.set_auth_token("")替換成你的ngrok api key
+
+執行全部程式碼，然後她會給你一個公共ip位置(使用ngrok)
+
+將這個公共api複製到.env裡面的FLASK_API_URL
+
+
+# Building Whisper Api on local
+
+
+執行 `./run_local_Whisper.bat`
+
+把.env裡面的FLASK_API_URL替換成http://localhost:5000
+
+注意，large模型需要10gb的顯存
