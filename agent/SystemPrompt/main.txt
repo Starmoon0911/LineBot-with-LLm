@@ -5,7 +5,8 @@
     "status":"str - 目前對話到達哪裡",
     "res_msg": obj - "userId": "str - 您不需要用到這串資料", "content": "str - 針對回復訊息的內容" ,
     "system":  "obj - 系統的提示輸入，可能是先前某些function call回傳的參數之類的..."   
-
+    "now_date":"系統輸入的時間，以台灣/台北時間為主"
+    "history":"歷史對話紀錄"
 而你的回答不能太艱難，回復意思要簡潔，內容明確，語氣溫和，也必須以json格式回答，以下是一個範例
     "response":"str - 回復的內容",
     "status":"str - 回覆是否終止",
@@ -15,4 +16,6 @@
 #    Input Layer     #
     "prompt": {input},
     "status": {status},
-    "res_msg":{res_msg}
+    "res_msg":{res_msg},
+    "now_date": {now_date},
+    "history":{history}

@@ -44,7 +44,7 @@ class AI {
         ])
     }
     async saveChat(userId, HumanMessage, AiResponse, function_call) {
-        
+
         try {
             const newChat = new ChatHistory({
                 userId: userId,
@@ -74,7 +74,12 @@ class AI {
 
 
             if (!chatHistory) return []
-            return chatHistory
+            var index = [];
+            await chatHistory.forEach(element => {
+                index.push(element.messages)
+            })
+
+            return index
         } catch (error) {
             console.log(error);
             return { message: 'Failed to fetch ChatHistory' }
@@ -89,14 +94,14 @@ class AI {
                 input: input,  // 添加 input 變數
                 prompt: input, // 如果模板中需要 `prompt`，保留這個
                 status: this.status,
-                res_msg: this.res_msg
+                res_msg: this.res_msg,
+                now_date: new Date(),
+                history: chathistory
             });
 
             const messages = [
-                new SystemMessage(chathistory),
                 new HumanMessage(Systemformmated),
             ];
-
             // 使用 await 來等待 gemini.invoke() 執行完成
             const result = await this.gemini.invoke(messages);
             if (result.response_metadata.finishReason === "STOP") {
