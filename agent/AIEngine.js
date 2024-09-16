@@ -4,7 +4,7 @@ const { ChatGoogleGenerativeAI } = require("@langchain/google-genai");
 const { HumanMessage, SystemMessage } = require('@langchain/core/messages');
 const prompt = require('./SystemPrompt/index');
 const ChatHistory = require('../database/schemas/ChatHistory.model')
-const ScamTool = require('./tools/Scam/main')
+const WeatherTool = require('./tools/Weather/main')
 class AI {
     constructor(options) {
         if (options?.gemini_api_key === undefined || options?.gemini_api_key === null) {
@@ -32,7 +32,8 @@ class AI {
                     category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
                     threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH
                 }
-            ]
+            ],
+            tools:[WeatherTool]
         });
         /**
          * 定義一個空的指定回復訊息，之後可以直接調用
@@ -40,7 +41,7 @@ class AI {
         this.res_msg = { userId: '', message: null }
         this.status = 'processing'
         this.getResponseWithTools = this.gemini.bindTools([
-
+            WeatherTool
         ])
     }
     async saveChat(userId, HumanMessage, AiResponse, function_call) {
@@ -69,7 +70,7 @@ class AI {
             console.log('正在取得臨時對話紀錄')
             const chatHistory = await ChatHistory
                 .find({ userId: userId })
-                .limit(5)
+                .limit(3)
                 .sort({ _id: -1 })  // 按 _id 降序排序，最近的記錄會在前面
 
 

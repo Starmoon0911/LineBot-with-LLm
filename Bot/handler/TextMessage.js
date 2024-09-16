@@ -3,13 +3,13 @@ const handleTextMessage = async (text, userId, client, replyToken) => {
     try {
         // 發送消息並獲取響應
         const raw_response = await client.AI.sendMessage(text, userId);
-
+        console.log(raw_response);
         // 解析響應內容
         const response = raw_response?.content?.replace(/```json\n|\n```/g, '');
         const JsonResponse = JSON.parse(response);
         const responseContent = JsonResponse.response;
 
-        console.log(responseContent);
+        console.log(responseContent);   
 
         // 構建符合 LINE API 格式的回應訊息
         await client.replyMessage(replyToken, [{
