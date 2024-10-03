@@ -2,14 +2,17 @@
   "main": "./Bot/index.js",
   "dependencies": {
     "@google/generative-ai": "^0.17.1",
+    "@langchain/community": "^0.3.1",
     "@langchain/google-genai": "^0.0.26",
     "@line/bot-sdk": "^9.2.2",
     "@xenova/transformers": "^2.17.2",
-    "axios": "^1.7.4",
+    "axios": "^1.7.7",
+    "csv-parser": "^3.0.0",
     "dotenv": "^16.4.5",
     "esm": "^3.2.25",
     "express": "^4.19.2",
     "jsdoc": "^4.0.3",
+    "langchain": "^0.3.2",
     "line": "^0.1.8",
     "linebot": "^1.6.1",
     "module-alias": "^2.2.3",
@@ -18,7 +21,8 @@
     "nodejs-whisper": "^0.1.18",
     "nodemon": "^3.1.4",
     "openai": "^4.55.9",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.23.3"
   },
   "__moduleAliases": {
     "@Bot": "./Bot",
