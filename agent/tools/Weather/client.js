@@ -1,8 +1,30 @@
 const { default: axios } = require("axios");
-
+require('dotenv').config();
+const { ChatGoogleGenerativeAI } = require('@langchain/google-genai')
 class Weather {
     constructor(apiKey) {
         this.apiKey = apiKey;
+        this.init()
+    }
+    async init() {
+        this.llm = new ChatGoogleGenerativeAI({
+            model: 'gemini-1.5-pro',
+            temperature: 1.0,
+            apiKey: process.env.API_KEY
+        })
+    }
+    async invoke(input) {
+        const aiMsg = await this.llm.invoke([
+            [
+                "system",
+                "使用簡單易懂的語言，避免專業術語。說明每個時間段的天氣狀況、降雨機率、氣溫範圍、風速和濕度。強調天氣對日常生活的影響，比如出門的建議。使用親切的語氣，讓內容感覺友好和溫暖。"
+            ],
+            [
+                "human",
+                `${input}`
+            ]
+        ])
+        return aiMsg.content;
     }
 
     async get7daysWeather({ location = '南投市' }) {
@@ -22,11 +44,11 @@ class Weather {
                         elementValue: t.elementValue[0].value
                     };
                 });
-
+                const formtedWeather = await this.invoke(JSON.stringify(weatherData))
                 // 只返回前兩筆資料
                 return {
                     success: true,
-                    weatherData: weatherData.slice(0, 2) // 取前兩筆
+                    weatherData: formtedWeather
                 };
             }
             return { success: false, message: response.data.message };

@@ -8,6 +8,8 @@ const { ChatPromptTemplate } = require('@langchain/core/prompts');
 const calculatorTool = require('./tools/calculator/main');
 const { createToolCallingAgent, AgentExecutor } = require('langchain/agents');
 const { TavilySearchResults } = require('@langchain/community/tools/tavily_search')
+const restaurantTool = require('./tools/restarent/main')
+const medicineTool = require('./tools/medicineStore/main')
 class AI {
     constructor(options) {
         if (!options?.gemini_api_key) {
@@ -33,8 +35,6 @@ class AI {
             ],
         });
 
-        // 初始化代理和工具
-        this.initializeAgent();
     }
     async initializeAgent() {
         try {
@@ -42,13 +42,15 @@ class AI {
                 WeatherTool,
                 calculatorTool,
                 new TavilySearchResults({ maxResults: 1, apiKey: process.env.tavily_apiKey }),
+                restaurantTool,
+                medicineTool
             ];
             this.prompt = ChatPromptTemplate.fromMessages([
-                ["system", "你使用繁體中文回答，並且很會使用function calls"],//使用*繁體中文*回答。你的目標是提供使用者準確、完整的資訊。你目前服務的專案是: '2024南投山城黑克松競賽 三人行 demo機'，請不要當個復讀機。回答時不要用markdown格式，內容不能過長，列出幾點就好。你可以去政府opendata查詢資料，提供使用者正確的資訊。現在時間:{now_date}
+                ["system", "你使用繁體中文回答，並且會使用function calls"],//你使用繁體中文回答，並且會使用function calls
                 ["human", "{input}"],
                 ["placeholder", "{agent_scratchpad}"],
             ]);
-            
+
 
             this.agent = await createToolCallingAgent({
                 llm: this.llm,
@@ -59,7 +61,7 @@ class AI {
             this.AgentExecutor = new AgentExecutor({
                 agent: this.agent,
                 tools: this.tools,
-                //verbose: true,
+                verbose: true,
             });
 
             // 初始化完成
@@ -87,7 +89,7 @@ class AI {
         try {
             console.log('正在取得臨時對話紀錄');
             const chatHistory = await ChatHistory.find({ userId }).limit(2).sort({ _id: -1 });
-    
+
             // 確保每個訊息都有內容
             return chatHistory.length
                 ? chatHistory.flatMap(chat => chat.messages.map(msg => {
@@ -104,37 +106,35 @@ class AI {
             return [];
         }
     }
-    
+
 
     async sendMessage(input, userId) {
         if (this.status !== 'ready') {
-            throw new Error('Agent is not ready yet.');
+            throw new Error('Agent is not ready yet. use initializeAgent() func to init it');
         }
-    
-        if (!input || !userId) {
-            throw new Error('Input or UserId is missing.');
+
+        if (!input) {
+            throw new Error('Input is missing.');
         }
-    
-        const chathistory = await this.getChatHistory(userId);
         console.log('正在取得回應');
-    
+
         try {
             const result = await this.AgentExecutor.invoke({
                 input: input,
                 now_date: new Date().toISOString(),  // 確保時間格式正確
             });
-    
+
             if (result.output) {
                 await this.saveChat(userId, input, result.output, null);
             }
-    
+
             return result.output;
         } catch (error) {
             console.error("Error sending message:", error.message);
             throw new Error('Failed to send message: ' + error.message);
         }
     }
-    
+
 
 
 }
