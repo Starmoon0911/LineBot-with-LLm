@@ -9,6 +9,7 @@ const WeatherTool = new DynamicStructuredTool({
     schema: WeatherSchema,
     func: async ({ location }) => {
         try {
+            console.log('starting to get weather')
             const weather = await client.get7daysWeather(location);
             console.log(JSON.stringify(weather.weatherData))
             return JSON.stringify(weather.weatherData); // 確保返回正確的結果

@@ -2,14 +2,15 @@ require('dotenv').config();
 const { HarmBlockThreshold, HarmCategory } = require('@google/generative-ai');
 const { ChatGoogleGenerativeAI } = require("@langchain/google-genai");
 const { HumanMessage, SystemMessage } = require('@langchain/core/messages');
-const ChatHistory = require('../database/schemas/ChatHistory.model');
+const { ChatMessageHistory } = require('@langchain/community/stores/message/in_memory');
 const WeatherTool = require('./tools/Weather/main'); // 引入WeatherTool
 const { ChatPromptTemplate } = require('@langchain/core/prompts');
 const calculatorTool = require('./tools/calculator/main');
 const { createToolCallingAgent, AgentExecutor } = require('langchain/agents');
-const { TavilySearchResults } = require('@langchain/community/tools/tavily_search')
-const restaurantTool = require('./tools/restarent/main')
-const medicineTool = require('./tools/medicineStore/main')
+const { TavilySearchResults } = require('@langchain/community/tools/tavily_search');
+const restaurantTool = require('./tools/restarent/main');
+const medicineTool = require('./tools/medicineStore/main');
+
 class AI {
     constructor(options) {
         if (!options?.gemini_api_key) {
@@ -35,22 +36,24 @@ class AI {
             ],
         });
 
+        // 初始化聊天歷史記錄存儲
+        this.messageHistory = new ChatMessageHistory();
     }
+
     async initializeAgent() {
         try {
             this.tools = [
                 WeatherTool,
                 calculatorTool,
-                new TavilySearchResults({ maxResults: 1, apiKey: process.env.tavily_apiKey }),
+
                 restaurantTool,
                 medicineTool
             ];
             this.prompt = ChatPromptTemplate.fromMessages([
-                ["system", "你使用繁體中文回答，並且會使用function calls"],//你使用繁體中文回答，並且會使用function calls
+                ["system", `使用繁體中文回答，並且會使用functioncalls，時間:${new Date()}。對話紀錄:{history}`],
                 ["human", "{input}"],
                 ["placeholder", "{agent_scratchpad}"],
             ]);
-
 
             this.agent = await createToolCallingAgent({
                 llm: this.llm,
@@ -61,52 +64,64 @@ class AI {
             this.AgentExecutor = new AgentExecutor({
                 agent: this.agent,
                 tools: this.tools,
-                verbose: true,
             });
 
             // 初始化完成
             this.status = 'ready';
+            console.log('初始化完成。狀態:' + this.status);
         } catch (error) {
             console.error('Error initializing agent:', error);
             this.status = 'error';
         }
     }
-    async saveChat(userId, humanMessage, aiResponse, function_call) {
+
+    async saveChat(userId, humanMessage, aiResponse) {
         try {
-            const newChat = new ChatHistory({
-                userId,
-                messages: [
-                    { human: { message: humanMessage }, model: { message: aiResponse, function_call } }
-                ]
-            });
-            await newChat.save();
+            this.messageHistory.addMessage(new HumanMessage({ content: humanMessage }));
+            this.messageHistory.addMessage(new SystemMessage({ content: aiResponse }));
             console.log('成功保存臨時對話紀錄');
         } catch (error) {
             console.error('Error saving chat:', error);
         }
     }
-    async getChatHistory(userId) {
-        try {
-            console.log('正在取得臨時對話紀錄');
-            const chatHistory = await ChatHistory.find({ userId }).limit(2).sort({ _id: -1 });
+    async getChatHistory() {
+    try {
+        console.log('正在取得臨時對話紀錄');
+        const historyMessages = await this.messageHistory.getMessages();
 
-            // 確保每個訊息都有內容
-            return chatHistory.length
-                ? chatHistory.flatMap(chat => chat.messages.map(msg => {
-                    if (msg.human.message) {
-                        return new HumanMessage({ content: msg.human.message });
-                    } else if (msg.model.message) {
-                        return new SystemMessage({ content: msg.model.message });
-                    }
-                    return null;
-                }).filter(Boolean))  // 過濾掉空的訊息
-                : [];
-        } catch (error) {
-            console.error('Error fetching chat history:', error);
-            return [];
+        // 使用陣列來收集最新的三條訊息（人類和AI）
+        const formattedHistory = [];
+        
+        // 只收集人類和AI訊息
+        for (const msg of historyMessages) {
+            if (msg instanceof HumanMessage || msg instanceof SystemMessage) {
+                // 在陣列前面插入新的訊息
+                formattedHistory.unshift({
+                    sender: msg instanceof HumanMessage ? 'Human' : 'AI',
+                    content: msg.content
+                });
+
+                // 確保陣列不超過四條訊息
+                if (formattedHistory.length > 4) {
+                    formattedHistory.pop(); // 刪除最舊的訊息
+                }
+            }
         }
-    }
 
+        // 將陣列轉換成所需格式的物件
+        const result = {};
+        formattedHistory.forEach((msg, index) => {
+            result[`${msg.sender} - ${index}`] = msg.content;
+        });
+
+        return result;
+    } catch (error) {
+        console.error('Error fetching chat history:', error);
+        return {};
+    }
+}
+
+    
 
     async sendMessage(input, userId) {
         if (this.status !== 'ready') {
@@ -116,16 +131,20 @@ class AI {
         if (!input) {
             throw new Error('Input is missing.');
         }
+        const history = await this.getChatHistory();
         console.log('正在取得回應');
 
         try {
-            const result = await this.AgentExecutor.invoke({
+            const message = {
                 input: input,
-                now_date: new Date().toISOString(),  // 確保時間格式正確
-            });
+                history: history,
+                now_date: new Date().toISOString(),
+            };
+            console.log('本次對話總字數:'+ JSON.stringify(message).length)
+            const result = await this.AgentExecutor.invoke(message);
 
             if (result.output) {
-                await this.saveChat(userId, input, result.output, null);
+                await this.saveChat(userId, input, result.output);
             }
 
             return result.output;
@@ -134,9 +153,6 @@ class AI {
             throw new Error('Failed to send message: ' + error.message);
         }
     }
-
-
-
 }
 
 module.exports = AI;

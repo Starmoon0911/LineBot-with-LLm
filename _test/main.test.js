@@ -1,9 +1,14 @@
-require('dotenv').config();
-const AI = require('../agent/AIEngine')
-const aiInstance = new AI({ gemini_api_key: process.env.API_KEY });
 
-aiInstance.sendMessage('What is 3 * 12', '用戶ID').then(response => {
-    console.log(response);
-}).catch(err => {
-    console.error(err);
+const { OllamaFunctions } = require("@langchain/community/experimental/chat_models/ollama_functions")
+
+const model = new OllamaFunctions({
+  temperature: 0.1,
+  model: "mistral",
 });
+
+
+async function run() {
+    const response = await model.invoke('hello');
+    console.log(response.output.text);
+}
+run()

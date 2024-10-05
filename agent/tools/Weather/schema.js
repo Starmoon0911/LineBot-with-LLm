@@ -9,7 +9,7 @@ const validLocations = [
 
 // 整體天氣資料的結構
 const WeatherSchema = z.object({
-    location: z.enum(validLocations).describe('要查詢的地方名稱，必須為其一')
+    location: z.enum(validLocations).describe('要查詢的地方名稱，必須為其一'),
 });
 
 module.exports = WeatherSchema;

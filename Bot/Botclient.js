@@ -17,6 +17,7 @@ class BotClient extends line.Client {
         this.AI = new AI({
             gemini_api_key: process.env.API_KEY
         });
+        this.AI.initializeAgent() //初始化AI
         this.mongodb = createConnection({ url:process.env.MONGODB_URL })
     }
 
